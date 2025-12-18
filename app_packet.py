@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # definitions of packets that go from the App to Artoo or App to Solo and vice versa.
 # All packets are of the form (in little endian)

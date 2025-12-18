@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # definitions of shots
 # NOTE: Make sure this stays in sync with the app's definitions!  Those are in iSolo/UI/ShotLibrary.swift

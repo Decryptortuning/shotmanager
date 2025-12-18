@@ -21,6 +21,7 @@ from dronekit import Vehicle, LocationGlobalRelative, VehicleMode
 from pymavlink import mavutil
 import math
 import struct
+import time
 import app_packet
 import camera
 import location_helpers
@@ -34,7 +35,6 @@ from vector2 import Vector2
 from sololink import btn_msg
 import cableController
 from cableController import CableController
-import monotonic
 
 # initiate logger
 logger = shotLogger.logger
@@ -244,7 +244,7 @@ class MultipointShot():
         self.cable.trackSpeed(abs(self.desiredSpeed))
 
         # advance cable controller by dt (time elapsed)
-        now = monotonic.monotonic()
+        now = time.monotonic()
         if self.lastTime is None:
             dt = UPDATE_TIME
         else:
@@ -720,7 +720,7 @@ class MultipointShot():
         # Build spline object
         try:
             self.camSpline = CatmullRom(camPts)
-        except ValueError, e:
+        except ValueError as e:
             logger.log("%s", e)
             self.shotMgr.enterShot(shots.APP_SHOT_NONE)  # exit the shot
             return False
@@ -738,7 +738,7 @@ class MultipointShot():
         # Build spline object
         try:
             self.cable = cableController.CableController(points = ctrlPtsCart, maxSpeed = MAX_SPEED, minSpeed = MIN_CRUISE_SPEED, tanAccelLim = TANGENT_ACCEL_LIMIT, normAccelLim = NORM_ACCEL_LIMIT, smoothStopP = 0.7, maxAlt = self.maxAlt)
-        except ValueError, e:
+        except ValueError as e:
             logger.log("%s", e)
             self.shotMgr.enterShot(shots.APP_SHOT_NONE)  # exit the shot
             return False

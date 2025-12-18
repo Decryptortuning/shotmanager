@@ -6,7 +6,7 @@ from mock import patch
 import os
 from os import sys, path
 import struct
-import monotonic
+import time
 import unittest
 
 from pymavlink import mavutil
@@ -424,7 +424,7 @@ class TestQueueMsg(unittest.TestCase):
     def testQueueMsg(self):
         """ Test queuing up a message """
         self.mgr.isGoproBusy = True
-        self.mgr.lastRequestSent = monotonic.monotonic()
+        self.mgr.lastRequestSent = time.monotonic()
         self.mgr.queueMsg(4)
         self.assertFalse( self.mgr.msgQueue.empty() )
         self.assertTrue(self.mgr.isGoproBusy)
@@ -446,11 +446,11 @@ class TestQueueMsg(unittest.TestCase):
         """ Test queue is flushed with outstanding message sent more than 2 seconds ago """
         self.mgr.sendState = Mock()
         self.mgr.isGoproBusy = True
-        self.mgr.lastRequestSent = monotonic.monotonic()
+        self.mgr.lastRequestSent = time.monotonic()
         self.mgr.queueMsg(1)
         self.mgr.queueMsg(2)
         self.assertEqual(self.mgr.msgQueue.qsize(), 2)
-        self.mgr.lastRequestSent = monotonic.monotonic() - 3.0
+        self.mgr.lastRequestSent = time.monotonic() - 3.0
         self.mgr.queueMsg(3)
         self.assertTrue(self.mgr.msgQueue.empty)
         self.mgr.sendState.assert_called_with()
@@ -465,7 +465,7 @@ class TestProcessMsgQueue(unittest.TestCase):
     def testSendNextMessage(self):
         """ send the next message in the queue """
         self.mgr.isGoproBusy = True
-        self.mgr.lastRequestSent = monotonic.monotonic()
+        self.mgr.lastRequestSent = time.monotonic()
         self.mgr.queueMsg(3)
         self.mgr.queueMsg(2)
         self.mgr.queueMsg(1)

@@ -37,7 +37,6 @@ import socket
 import string
 import sys
 import threading
-import monotonic
 import time
 import modes
 import settings
@@ -248,4 +247,3 @@ class extFunctions():
              CloseOpen,      # param 2: Open or Close
              0, 0, 0, 0, 0)  # params 3-7 (not used)
         self.vehicle.send_mavlink(msg)
-

@@ -37,7 +37,6 @@ from shotFactory import ShotFactory
 import app_packet
 import shots
 import modes
-import monotonic
 from location_helpers import rad2deg, wrapTo360, wrapTo180
 
 try:
@@ -95,7 +94,7 @@ class ShotManager():
         self.registerCallbacks()
         
         # Try to maintain a constant tick rate
-        self.timeOfLastTick = monotonic.monotonic()
+        self.timeOfLastTick = time.monotonic()
         # how many ticks have we performed since an RC update?
 
         # register all connections (gopro manager communicates via appMgr's socket)
@@ -111,7 +110,7 @@ class ShotManager():
             logger.log("[shot]: No gimbal detected.")
 
         # mark first tick time
-        self.timeOfLastTick = monotonic.monotonic()
+        self.timeOfLastTick = time.monotonic()
 
         # check for In-Air start from Shotmanager crash
         if self.vehicle.system_status == 'ACTIVE':
@@ -178,7 +177,7 @@ class ShotManager():
 
                 exceptStr = traceback.format_exc()
 
-                print exceptStr
+                print(exceptStr)
                 strlist = exceptStr.split('\n')
 
                 for i in strlist:
@@ -186,7 +185,13 @@ class ShotManager():
 
                 if self.appMgr.isAppConnected():
                     # send error to app
-                    packet = struct.pack('<II%ds' % (len(exceptStr)), app_packet.SOLO_MESSAGE_SHOTMANAGER_ERROR, len(exceptStr), exceptStr)
+                    except_bytes = exceptStr.encode("utf-8", errors="replace")
+                    packet = struct.pack(
+                        "<II%ds" % len(except_bytes),
+                        app_packet.SOLO_MESSAGE_SHOTMANAGER_ERROR,
+                        len(except_bytes),
+                        except_bytes,
+                    )
 
                     self.appMgr.client.send(packet)
                     # sleep to make sure the packet goes out (for some reason

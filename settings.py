@@ -4,8 +4,8 @@
 import os
 import threading
 import shotLogger
-import ConfigParser
 logger = shotLogger.logger
+import configparser
 
 settingsLock = threading.Lock()
 
@@ -21,11 +21,13 @@ def writeSettingsThread(name, value):
     settingsLock.acquire()
 
     # write to the config file
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.RawConfigParser()
     config.optionxform=str
 
     config.read(CONFIG_FILE)
     try:
+        if not config.has_section("shotManager"):
+            config.add_section("shotManager")
         config.set("shotManager", name, value)
     except:
         logger.log("Failed to write setting")
@@ -35,7 +37,7 @@ def writeSettingsThread(name, value):
     os.system("md5sum %s > %s.md5" % (CONFIG_FILE_BACKUP, CONFIG_FILE_BACKUP))
     os.system("sync")
     # modify config file and set md5
-    with open(CONFIG_FILE, 'wb') as configfile:
+    with open(CONFIG_FILE, 'w', encoding='utf-8') as configfile:
         config.write(configfile)
     os.system("md5sum %s > %s.md5" % (CONFIG_FILE, CONFIG_FILE))
     os.system("sync")
@@ -52,7 +54,7 @@ def writeSettingsThread(name, value):
 # when we have more settings
 def readSetting(name):
     # get our saved button mappings
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.RawConfigParser()
 
     settingsLock.acquire()
     # if the config file is not found, an empty list is returned and the "get"
@@ -69,7 +71,7 @@ def readSetting(name):
 
 def readSettingExt(name):
     # get our saved button mappings for extended button functions
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.RawConfigParser()
 
     settingsLock.acquire()
     # if the config file is not found, an empty list is returned and the "get"
@@ -90,4 +92,3 @@ def writeSetting(name, value):
     thread = threading.Thread(name = "writeSettingsThread", target = writeSettingsThread, args = (name, value))
     thread.daemon = True
     thread.start()
-

@@ -38,7 +38,6 @@ import socket
 import string
 import sys
 import threading
-import monotonic
 import time
 import modes
 import settings

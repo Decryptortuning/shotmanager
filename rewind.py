@@ -40,7 +40,6 @@ import shots
 # spline
 import cableController
 from cableController import CableController
-import monotonic
 
 # on host systems these files are located here
 sys.path.append(os.path.realpath('../../flightcode/stm32'))
@@ -162,7 +161,7 @@ class RewindShot():
         
     def travel(self):
         # advance cable controller by dt (time elapsed)
-        now = monotonic.monotonic()
+        now = time.monotonic()
         if self.lastTime is None:
             dt = UPDATE_TIME
         else:
@@ -255,7 +254,7 @@ class RewindShot():
                 logger.log("[Rewind] read loc: %f %f %f" % (loc.lat, loc.lon, loc.alt))
                 ctrlPtsLLA.append(loc)
             else:
-                print "loc: None"
+                logger.log("[Rewind] loc: None")
 
         # try and have a 3 point spline or longer:
         if len(ctrlPtsLLA) < 2:
@@ -269,7 +268,7 @@ class RewindShot():
         # Construct spline object
         try:
             self.cable = cableController.CableController(points = ctrlPtsCart, maxSpeed = REWIND_SPEED, minSpeed = REWIND_MIN_SPEED, tanAccelLim = TANGENT_ACCEL_LIMIT, normAccelLim = NORM_ACCEL_LIMIT, smoothStopP = 0.7, maxAlt = 400)
-        except ValueError, e:
+        except ValueError as e:
             logger.log("%s", e)
             return False
 

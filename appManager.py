@@ -26,13 +26,12 @@ import socket
 import string
 import sys
 import threading
-import monotonic
 import time
 sys.path.append(os.path.realpath(''))
 import modes
 import settings
 import shots
-import Queue
+import queue
 import struct
 from dronekit.lib import LocationGlobalRelative
 from sololink import btn_msg
@@ -53,7 +52,7 @@ class appManager():
         self.client = None
         self.client_address = None
         self.clientQueue = None
-        self.packetBuffer = ""
+        self.packetBuffer = b""
         self.bindServer()
 
     def bindServer(self):
@@ -102,7 +101,7 @@ class appManager():
         self.connected = True
         self.client.setblocking(0)
         self.shotMgr.inputs.append(self.client)
-        self.clientQueue = Queue.Queue()
+        self.clientQueue = queue.Queue()
         self.broadcastShotToApp(self.shotMgr.currentShot)
 
         self.shotMgr.buttonManager.setButtonMappings() # called to un-grey out Artoo buttons
@@ -146,14 +145,14 @@ class appManager():
         self.sendPacket(packet)
 
     def exception(self):
-        logger.log("[app]: Exception with " + self.client.getpeername())
-        self.appMgr.disconnectClient()
+        logger.log("[app]: Exception with %s" % (self.client.getpeername(),))
+        self.disconnectClient()
 
     def write(self):
         if self.clientQueue:
             try:
                 msg = self.clientQueue.get_nowait()
-            except Queue.Empty:
+            except queue.Empty:
                 # no messages left, stop checking
                 self.shotMgr.outputs.remove(self.client)
             else:
@@ -175,7 +174,7 @@ class appManager():
 
         self.packetBuffer += data
 
-        while self.packetBuffer is not '':
+        while self.packetBuffer:
 
             if len(self.packetBuffer) < app_packet.SOLO_MESSAGE_HEADER_LENGTH:
                 logger.log('[app]: Not enough data for a Solo packet header yet.')

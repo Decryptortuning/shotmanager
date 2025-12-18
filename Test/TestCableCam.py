@@ -359,7 +359,7 @@ class TestInterpolateCamera(unittest.TestCase):
                                             )
 
     def TestInterp23NoGimbal(self):
-        """ Test when we're at 23\% on the cable, no gimbal """
+        """ Test when we're at 23% on the cable, no gimbal """
         self.controller.lastPerc = 0.23
         self.controller.yawDirection = 1
         self.v.mount_status = [None]

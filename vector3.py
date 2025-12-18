@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Vector3 class - super minimal; just adding things as I need them
 import math

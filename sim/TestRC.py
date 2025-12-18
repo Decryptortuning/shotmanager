@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Test script to test sending RC input to shotManager
 (Used for testing shotManager in SITL)
@@ -12,7 +12,7 @@ Only meant for debugging purposes, so it's not production code
 import sys
 import os
 import curses
-import Queue
+import queue
 import select
 import socket
 import struct
@@ -195,7 +195,7 @@ def ArtooButtonThread():
     server_address = ('', PORT)
 
     stringsUpdated = True
-    currentPacket = ""
+    currentPacket = b""
     currentPacketLength = 9999
     currentPacketType = None
 
@@ -228,7 +228,7 @@ def ArtooButtonThread():
                 client.setblocking(0)
                 inputs.append(client)
                 outputs.append(client)
-                clientQueue = Queue.Queue()
+                clientQueue = queue.Queue()
                 state = "accepted"
                 stringsUpdated = True
             else:
@@ -242,34 +242,35 @@ def ArtooButtonThread():
                     # parse the packet
                     if len(currentPacket) == app_packet.SOLO_MESSAGE_HEADER_LENGTH:
                         (currentPacketType, currentPacketLength) = struct.unpack('<II', currentPacket)
-                    if len(currentPacket) == app_packet.SOLO_MESSAGE_HEADER_LENGTH + currentPacketLength:
-                        value = currentPacket[app_packet.SOLO_MESSAGE_HEADER_LENGTH:]
-                        if currentPacketType == btn_msg.ARTOO_MSG_SET_BUTTON_STRING:
-                            state = "Button String"
-                            (button_id, event, shot, mask) = struct.unpack('<BBbb', value[:4])
-                            artooString = value[4:]
+                        if len(currentPacket) == app_packet.SOLO_MESSAGE_HEADER_LENGTH + currentPacketLength:
+                            value = currentPacket[app_packet.SOLO_MESSAGE_HEADER_LENGTH:]
+                            if currentPacketType == btn_msg.ARTOO_MSG_SET_BUTTON_STRING:
+                                state = "Button String"
+                                (button_id, event, shot, mask) = struct.unpack('<BBbb', value[:4])
+                                artooString = value[4:]
+                                mapping = artooString[:-1].decode("utf-8", errors="replace")
 
-                            if button_id == btn_msg.ButtonA:
+                                if button_id == btn_msg.ButtonA:
+                                    # remove null terminator
+                                    Amapping = mapping
+
+                                    if mask & btn_msg.ARTOO_BITMASK_ENABLED:
+                                        Amapping += "(enabled)"
+                                    else:
+                                        Amapping += "(disabled)"
+                                elif button_id == btn_msg.ButtonB:
+                                    # remove null terminator
+                                    Bmapping = mapping
+
+                                    if mask & btn_msg.ARTOO_BITMASK_ENABLED:
+                                        Bmapping += "(enabled)"
+                                    else:
+                                        Bmapping += "(disabled)"
+                            elif currentPacketType == btn_msg.ARTOO_MSG_SET_SHOT_STRING:
                                 # remove null terminator
-                                Amapping = artooString[:-1]
+                                shotName = value[:-1].decode("utf-8", errors="replace")
 
-                                if mask & btn_msg.ARTOO_BITMASK_ENABLED:
-                                    Amapping += "(enabled)"
-                                else:
-                                    Amapping += "(disabled)"
-                            elif button_id == btn_msg.ButtonB:
-                                # remove null terminator
-                                Bmapping = artooString[:-1]
-
-                                if mask & btn_msg.ARTOO_BITMASK_ENABLED:
-                                    Bmapping += "(enabled)"
-                                else:
-                                    Bmapping += "(disabled)"
-                        elif currentPacketType == btn_msg.ARTOO_MSG_SET_SHOT_STRING:
-                            # remove null terminator
-                            shotName = value[:-1]
-
-                        currentPacket = ""
+                            currentPacket = b""
                 else:
                     inputs.remove(s)
                     outputs.remove(s)
@@ -284,7 +285,7 @@ def ArtooButtonThread():
             try:
                 if clientQueue:
                     msg = clientQueue.get_nowait()
-            except Queue.Empty:
+            except queue.Empty:
                 pass   
             else:
                 try:

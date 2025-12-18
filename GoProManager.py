@@ -2,11 +2,10 @@
 # This file handles GoPro commands and holds GoPro state
 #
 import os
-import Queue
+import queue
 import sys
 import threading
 import time
-import monotonic
 import math
 from pymavlink import mavutil
 
@@ -110,7 +109,7 @@ class GoProManager():
         self.shotMgr = shotMgr
         # This exists because we can't seem to send multiple messages in a stream to the gopro.
         # Instead, we'll queue up all our messages and wait for a response before sending the next message
-        self.msgQueue = Queue.Queue()
+        self.msgQueue = queue.Queue()
         # is the GoPro currently handling a message?
         self.isGoproBusy = False
         # when the last message was sent
@@ -154,7 +153,7 @@ class GoProManager():
             # right now, query status when we initially connect
             if self.status == mavutil.mavlink.GOPRO_HEARTBEAT_STATUS_CONNECTED:
                 self.isGoproBusy = False
-                self.msgQueue = Queue.Queue()
+                self.msgQueue = queue.Queue()
                 self.sendGoProRequest(mavutil.mavlink.GOPRO_COMMAND_CAPTURE_MODE)
                 self.sendGoProRequest(mavutil.mavlink.GOPRO_COMMAND_BATTERY)
                 self.sendGoProRequest(mavutil.mavlink.GOPRO_COMMAND_MODEL)
@@ -428,9 +427,9 @@ class GoProManager():
     # since the gopro can't handle multiple messages at once, we wait for a response before sending
     # each subsequent message.  This is how we queue up messages
     def queueMsg(self, msg):
-        if self.isGoproBusy and monotonic.monotonic() > self.lastRequestSent + 2.0:
+        if self.isGoproBusy and time.monotonic() > self.lastRequestSent + 2.0:
             self.isGoproBusy = False
-            self.msgQueue = Queue.Queue()
+            self.msgQueue = queue.Queue()
             # return current state to resynchronize client
             self.sendState()
 
@@ -438,7 +437,7 @@ class GoProManager():
             self.msgQueue.put(msg)
         else:
             self.isGoproBusy = True
-            self.lastRequestSent = monotonic.monotonic()
+            self.lastRequestSent = time.monotonic()
             # Need to send False for fix_targeting so our message gets routed to the gimbal
             self.shotMgr.vehicle.send_mavlink(msg)
 
@@ -448,7 +447,7 @@ class GoProManager():
             self.isGoproBusy = False
         else:
             msg = self.msgQueue.get_nowait()
-            self.lastRequestSent = monotonic.monotonic()
+            self.lastRequestSent = time.monotonic()
             # Need to send False for fix_targeting so our message gets routed to the gimbal
             self.shotMgr.vehicle.send_mavlink(msg)
             logger.log("[gopro]: sending message from the queue.  Size is now %d"%(self.msgQueue.qsize()))
@@ -479,23 +478,23 @@ class GoProManager():
 
     # Send a photo event with current time and location.
     def sendPhotoEvent(self): 
-        now = monotonic.monotonic()
-        logger.log("[gopro]: send photo event.  now is %d"%now)
+        now_ms = int(time.monotonic() * 1000)
+        logger.log("[gopro]: send photo event.  now is %d"%now_ms)
 
         if self.shotMgr.vehicle.location.global_relative_frame is not None:
             pkt = struct.pack("<IIddfI", app_packet.GOPRO_PHOTO, 24, 
                 self.shotMgr.vehicle.location.global_relative_frame.lat, 
                 self.shotMgr.vehicle.location.global_relative_frame.lon, 
                 self.shotMgr.vehicle.location.global_relative_frame.alt, 
-                monotonic.monotonic())
+                now_ms)
 
             self.addPhotoLog(
                 self.shotMgr.vehicle.location.global_relative_frame.lat, 
                 self.shotMgr.vehicle.location.global_relative_frame.lon, 
                 self.shotMgr.vehicle.location.global_relative_frame.alt, 
-                monotonic.monotonic())
+                now_ms)
         else:
-            pkt = struct.pack("<IIddfI", app_packet.GOPRO_PHOTO, 24, 0, 0, 0, monotonic.monotonic())
+            pkt = struct.pack("<IIddfI", app_packet.GOPRO_PHOTO, 24, 0, 0, 0, now_ms)
 
         self.shotMgr.appMgr.sendPacket(pkt)
 

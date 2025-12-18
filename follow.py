@@ -23,7 +23,7 @@ limitations under the License.
 import os
 import math
 import struct
-import monotonic
+import time
 import collections
 import app_packet
 import camera
@@ -434,7 +434,7 @@ class FollowShot():
         if packetsConsumed > 0:
             (id, length, lat, lon, alt) = struct.unpack('<IIddf', newestData)
             if id == app_packet.SOLO_MESSAGE_LOCATION:
-                now = monotonic.monotonic()
+                now = time.monotonic()
                 if self.rawROI is None:
                     self.roiDeltaTime = None
                 else:
@@ -682,4 +682,3 @@ class FollowShot():
             return False
         else:
             return True
-
