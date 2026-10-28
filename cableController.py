@@ -204,17 +204,17 @@ class CableController():
 
             if self.speed > 0:
                 # Search ahead, then behind
-                for i in range(searchStart, self.curvatureMapNumSegments)+list(reversed(range(0, searchStart))):
+                for i in list(range(searchStart, self.curvatureMapNumSegments))+list(reversed(range(0, searchStart))):
                     if self._computeCurvatureMapSpeedLimit(i):
                         break
             elif self.speed < 0:
                 # Search behind, then ahead
-                for i in list(reversed(range(0, searchStart+1)))+range(searchStart+1, self.curvatureMapNumSegments):
+                for i in list(reversed(range(0, searchStart+1)))+list(range(searchStart+1, self.curvatureMapNumSegments)):
                     if self._computeCurvatureMapSpeedLimit(i):
                         break
             else: # speed == 0
                 # Search alternately ahead and behind
-                searchList = [x for t in list(itertools.izip_longest(range(searchStart, self.curvatureMapNumSegments), reversed(range(0, searchStart)))) for x in t if x is not None]
+                searchList = [x for t in list(itertools.zip_longest(range(searchStart, self.curvatureMapNumSegments), reversed(range(0, searchStart)))) for x in t if x is not None]
                 for i in searchList:
                     if self._computeCurvatureMapSpeedLimit(i):
                         break

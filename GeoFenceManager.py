@@ -168,13 +168,13 @@ class GeoFenceManager:
 
         # Data is good
         for i in range(len(coordArr)):
-            coords = map(lambda coord: LocationGlobalRelative(coord[0], coord[1], 0), coordArr[i])
-            subCoords = map(lambda coord: LocationGlobalRelative(coord[0], coord[1], 0), subCoordArr[i])
+            coords = [LocationGlobalRelative(coord[0], coord[1], 0) for coord in coordArr[i]]
+            subCoords = [LocationGlobalRelative(coord[0], coord[1], 0) for coord in subCoordArr[i]]
             fenceType = fenceTypeArr[i]
             # coords[0] is guaranteed to exist because a polygon with less than 3 vertices won't pass the validation
             origin = coords[0]
-            coordsCart = map(lambda coord: location_helpers.getVectorFromPoints(origin, coord), coords)
-            subCoordsCart = map(lambda coord: location_helpers.getVectorFromPoints(origin, coord), subCoords)
+            coordsCart = [location_helpers.getVectorFromPoints(origin, coord) for coord in coords]
+            subCoordsCart = [location_helpers.getVectorFromPoints(origin, coord) for coord in subCoords]
 
             # Repeat first coordinate, first elements are guaranteed to exist or validation will fail
             coordsCart.append(coordsCart[0])
@@ -279,8 +279,8 @@ class GeoFenceManager:
             logger.log("[GeoFenceManager]: something is not right, fence:%s" % fence)
             return
 
-        polygon = map(lambda coord: Vector2(coord.x, coord.y), fence.vertices)
-        subPolygon = map(lambda coord: Vector2(coord.x, coord.y), fence.subVertices)
+        polygon = [Vector2(coord.x, coord.y) for coord in fence.vertices]
+        subPolygon = [Vector2(coord.x, coord.y) for coord in fence.subVertices]
         v0_3d = location_helpers.getVectorFromPoints(fence.origin, vehicleLocation)
         v0 = Vector2(v0_3d.x, v0_3d.y)
         v1 = Vector2(v0.x + velocityDirection.x, v0.y + velocityDirection.y)
