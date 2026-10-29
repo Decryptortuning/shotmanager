@@ -50,7 +50,7 @@ class Vector3:
 	def __rmul__(self, scalar):
 		return Vector3(scalar * self.x, scalar * self.y, scalar * self.z)
 
-	def __div__(self, scalar):
+	def __truediv__(self, scalar):
 		return Vector3(self.x/scalar, self.y/scalar, self.z/scalar)
 
 	def __repr__(self):
